@@ -1,0 +1,10 @@
+[Unit]
+Description=Loads kernel namespaces from a configuration file
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=namespacehelper
+
+[Install]
+WantedBy=basic.target

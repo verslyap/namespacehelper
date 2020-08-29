@@ -1,0 +1,15 @@
+#!/bin/bash
+
+[ ! -d "/run/namespace/" ] && mkdir /run/namespace/
+
+conf="/etc/namespacehelper/namespacehelper.conf"
+
+while IFS= read -r line
+do
+  f="/run/namespace/$(echo $line | cut -d " " -f 4)"
+  if [ ! -f $f ]
+    then
+      echo $(touch $f)
+      echo $(unshare --$(echo $line | cut -d " " -f 2)=$f)
+  fi
+done < $conf
