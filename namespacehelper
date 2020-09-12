@@ -6,10 +6,15 @@ conf="/etc/namespacehelper/namespacehelper.conf"
 
 while IFS= read -r line
 do
-  f="/run/namespace/$(echo $line | cut -d " " -f 4)"
-  if [ ! -f $f ]
-    then
-      echo $(touch $f)
-      echo $(unshare --$(echo $line | cut -d " " -f 2)=$f)
+  if [ $(echo $line | cut-d " " -f 2) = "NET"]
+     echo $(ip netns add $(echo $line | cut -d " " -f 4))
+     echo $(ip link set dev $(echo $line | cut -d " " -f 6) netns $(echo $line | cut -d " " -f 4))
+  else
+    f="/run/namespace/$(echo $line | cut -d " " -f 4)"
+    if [ ! -f $f ]
+      then
+        echo $(touch $f)
+        echo $(unshare --$(echo $line | cut -d " " -f 2)=$f)
+    fi
   fi
 done < $conf
