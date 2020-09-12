@@ -6,4 +6,4 @@ The configuration file lives at /etc/namespacehelper/namespacehelper.conf.  The 
 \# namespace type_of_namespace name name_of_namespace  
 namespace uts name red
 
-See the man unshare command for supported namespaces. Namespaces are persisted at /run/namespace/
+See man unshare for supported namespaces. Namespaces are persisted at /run/namespace/ except for the network namespace which uses the defaults from ip-netns.
