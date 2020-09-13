@@ -6,7 +6,8 @@ conf="/etc/namespacehelper/namespacehelper.conf"
 
 while IFS= read -r line
 do
-  if [ $(echo $line | cut-d " " -f 2) = "NET"]
+  if [ $(echo $line | cut -d " " -f 2) = "NET" ]
+    then
      echo $(ip netns add $(echo $line | cut -d " " -f 4))
      echo $(ip link set dev $(echo $line | cut -d " " -f 6) netns $(echo $line | cut -d " " -f 4))
   else
