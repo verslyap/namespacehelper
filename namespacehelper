@@ -1,21 +1,75 @@
 #!/bin/bash
 
-[ ! -d "/run/namespace/" ] && mkdir /run/namespace/
+if [ ! -d "/run/namespace/" ]
+then
+  mkdir /run/namespace/
+fi
 
 conf="/etc/namespacehelper/namespacehelper.conf"
 
 while IFS= read -r line
 do
-  if [ $(echo $line | cut -d " " -f 2) = "NET" ]
-    then
-     echo $(ip netns add $(echo $line | cut -d " " -f 4))
-     echo $(ip link set dev $(echo $line | cut -d " " -f 6) netns $(echo $line | cut -d " " -f 4))
+  nstype=$(cut -d " " -f 2 <<< "$line")
+  nslabel=$(cut -d " " -f 4 <<< "$line")
+  if [ "$nstype" = "net" ]
+  then
+     nsadapter=$(cut -d " " -f 6 <<< "$line")
+     if [ ! -f /var/run/netns/"$nslabel" ]
+     then
+       ip netns add "$nslabel"
+       ip link set dev "$nsadapter" netns "$nslabel"
+     fi
   else
-    f="/run/namespace/$(echo $line | cut -d " " -f 4)"
-    if [ ! -f $f ]
-      then
-        echo $(touch $f)
-        echo $(unshare --$(echo $line | cut -d " " -f 2)=$f)
+     mounted=$(mount | grep "$nslabel" | cut -d " " -f 5)
+     f=/run/namespace/$nslabel
+     if [ ! -f "$f" ]
+     then
+       touch "$f"
+     fi
+     if [ -z "$mounted" ]
+     then
+       unshare --"$nstype"="$f" /usr/bin/false
+    fi
+  fi
+done < $conf
+[adam@pi ~]$ sudo cp ./namespacehelper /var/www/html/
+fence_ssh                          kvmgt.conf                         namespacehelper.conf
+iwlwifi-9000-pu-b0-jf-b0-46.ucode  macvlan.service                    namespace.service
+ks.cfg                             namespacehelper
+[adam@pi ~]$ sudo cp ./namespacehelper /var/www/html/
+[sudo] password for adam:
+[adam@pi ~]$ cat namespacehelper
+#!/bin/bash
+
+if [ ! -d "/run/namespace/" ]
+then
+  mkdir /run/namespace/
+fi
+
+conf="/etc/namespacehelper/namespacehelper.conf"
+
+while IFS= read -r line
+do
+  nstype=$(cut -d " " -f 2 <<< "$line")
+  nslabel=$(cut -d " " -f 4 <<< "$line")
+  if [ "$nstype" = "net" ]
+  then
+     nsadapter=$(cut -d " " -f 6 <<< "$line")
+     if [ ! -f /var/run/netns/"$nslabel" ]
+     then
+       ip netns add "$nslabel"
+       ip link set dev "$nsadapter" netns "$nslabel"
+     fi
+  else
+     mounted=$(mount | grep "$nslabel" | cut -d " " -f 5)
+     f=/run/namespace/$nslabel
+     if [ ! -f "$f" ]
+     then
+       touch "$f"
+     fi
+     if [ -z "$mounted" ]
+     then
+       unshare --"$nstype"="$f" /usr/bin/false
     fi
   fi
 done < $conf
